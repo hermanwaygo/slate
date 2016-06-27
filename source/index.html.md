@@ -1,15 +1,12 @@
 ---
-title: API Reference
+title: Waygo API Reference
 
 language_tabs:
   - shell
-  - ruby
   - python
-  - javascript
 
 toc_footers:
-  - <a href='#'>Sign Up for a Developer Key</a>
-  - <a href='https://github.com/tripit/slate'>Documentation Powered by Slate</a>
+  - <a href='http://waygoapp.com/api'>Sign Up for a Developer Key</a>
 
 includes:
   - errors
@@ -19,80 +16,56 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
-
-We have language bindings in Shell, Ruby, and Python! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
-
-This example API documentation page was created with [Slate](https://github.com/tripit/slate). Feel free to edit it and use it as a base for your own API's documentation.
+The Waygo API allows you to extract text from images, also known as OCR, in a way that is automatic and scalable. The API currently supports text extraction of Chinese, English, Japanese and Korean. The [detect endpoint](#detect-text) returns the position, color and background color of detected text, while the [translate endpoint](#translate) does the same, with the addition of returning an image with the text replaced with their English translations. If you have any questions about the Waygo API or the documentation, please reach out to [sdk@waygoapp.com](mailto:sdk@waygoapp.com).
 
 # Authentication
 
 > To authorize, use this code:
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-```
-
 ```python
-import kittn
+import waygo
 
-api = kittn.authorize('meowmeowmeow')
+api = waygo.authorize('yourapikey')
 ```
 
 ```shell
 # With shell, you can just pass the correct header with each request
 curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+  -H "Authorization: yourapikey"
 ```
 
-```javascript
-const kittn = require('kittn');
+> Make sure to replace `yourapikey` with your API key.
 
-let api = kittn.authorize('meowmeowmeow');
-```
+Waygo uses API keys to allow access to the API. You can register a new Waygo API key at our [developer portal](http://waygoapp.com/api).
 
-> Make sure to replace `meowmeowmeow` with your API key.
+Waygo expects for the API key to be included in all API requests to the server in a header that looks like the following:
 
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
+`Authorization: yourapikey`
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+You must replace <code>yourapikey</code> with your personal API key.
 </aside>
 
-# Kittens
+# Image
 
-## Get All Kittens
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
+## Detect text
 
 ```python
-import kittn
+import waygo
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
+api = waygo.authorize('yourapikey')
+img = open("/path/to/image.jpg", "r")
+api.image.detect(image=img, lc_src="zh")
 ```
 
 ```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
+curl \
+  --request POST \
+  --url http://waygoapp.com/api/v1/image/detect \
+  --header 'cache-control: no-cache' \
+  --header 'content-type: multipart/form-data' \
+  --form 'image=@/path/to/image.jpg' \
+  --form lcSrc=zh
 ```
 
 > The above command returns JSON structured like this:
@@ -100,65 +73,66 @@ let kittens = api.kittens.get();
 ```json
 [
   {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
+    "value": "漢堡",
+    "shape": [
+      {"x": 10, "y": 40}, 
+      {"x": 100, "y": 40}, 
+      {"x": 100, "y": 80},
+      {"x": 10, "y": 80}
+    ],
+    "colors": {
+      "fg": [0, 4, 6],
+      "bg": [240, 245, 255]
+    } 
   },
   {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
+    "value": "雞香堡",
+    "shape": [
+      {"x": 10, "y": 140}, 
+      {"x": 130, "y": 140}, 
+      {"x": 130, "y": 180},
+      {"x": 10, "y": 180}
+    ],
+    "colors": {
+      "fg": [0, 4, 6],
+      "bg": [240, 245, 255]
+    } 
+  },
 ]
 ```
 
-This endpoint retrieves all kittens.
+This endpoint detects the lines of text in an image, and returns the positions, colors and text of the detected text.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`POST http://waygoapp.com/api/v1/image/detect`
 
-### Query Parameters
+### POST Form Parameters
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+Parameter | Required | Default | Description
+--------- | -------- | ------- | -----------
+image     | Yes      | -       | The image to be used for detection, attached as part of a multipart-encoded request.
+lcSrc     | Yes      | -       | The ISO language code of the source language, or in other words, the language of the text in the image. <br><br> The accepted language codes are: <ul><li>`en` (English)</li><li>`zh` (Chinese)</li><li>`ja` (Japanese)</li><li>`ko` (Korean)</li></ul><br>If `zh` is specified, the API will automatically handle both simplified and traditional Chinese text.
+
 
 <aside class="success">
-Remember — a happy kitten is an authenticated kitten!
+Remember — all requests require a valid API key for authentication.
 </aside>
 
-## Get a Specific Kitten
+# Text
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
-```
+## Translate
 
 ```python
-import kittn
+import waygo
 
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
+api = waygo.authorize('yourapikey')
+api.text.translate(text=["漢堡", "雞香堡"], lc_src="zh", lc_tgt="en")
 ```
 
 ```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
+curl "http://waygoapp.com/api/v1/text/translate"
+  -H "Authorization: yourapikey"
 ```
 
 > The above command returns JSON structured like this:
