@@ -6,7 +6,7 @@ These new docs are still under development, but feel free to look around.
 
 The documentation is based on [Slate](https://github.com/lord/slate), so the setup steps are similar:
 
-1. Clone this repository to your hard drive with `git clone https://github.com/hermanwaygo/slate.git` waygodocs
+1. Clone this repository to your hard drive with `git clone https://github.com/hermanwaygo/slate.git waygodocs`
 2. `cd waygodocs`
 3. Initialize and start Slate:
 
